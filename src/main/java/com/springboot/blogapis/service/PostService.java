@@ -1,6 +1,7 @@
 package com.springboot.blogapis.service;
 
 import com.springboot.blogapis.model.dto.PostDto;
+import com.springboot.blogapis.model.dto.response.PostResponse;
 import com.springboot.blogapis.model.entites.PostSchema;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public interface PostService{
 
     void deletePost(Integer postId);
 
-    List<PostDto> getAllPost();
+    PostResponse getAllPost(Integer pageNumber, Integer pageSize,String sortBy,String sortDirection);
 
     PostDto getPostById(Integer postId);
 
@@ -24,7 +25,8 @@ public interface PostService{
     List<PostDto> getPostListByUser(Integer userId);
 
     // Search Post
-    List<PostDto> searchPost(String keyword);
+    List<PostDto> searchPostByTitle(String keyword);
+    List<PostDto> searchPostByTitleQuery(String keyword);
 
 
 

@@ -1,6 +1,7 @@
 package com.springboot.blogapis.model.dto;
 
 import com.springboot.blogapis.model.entites.CategorySchema;
+import com.springboot.blogapis.model.entites.CommentSchema;
 import com.springboot.blogapis.model.entites.UserSchema;
 import jakarta.persistence.Column;
 import lombok.Getter;
@@ -8,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @NoArgsConstructor
 @Getter
@@ -21,4 +24,6 @@ public class PostDto {
 
     private CategoryDto category;
     private UserDto user;
+
+    private Set<CommentDto> comment = new HashSet<>();
 }

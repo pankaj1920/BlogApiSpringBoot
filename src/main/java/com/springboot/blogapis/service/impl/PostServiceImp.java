@@ -3,6 +3,7 @@ package com.springboot.blogapis.service.impl;
 import com.springboot.blogapis.exception.ResourceNotFoundException;
 import com.springboot.blogapis.model.dto.CategoryDto;
 import com.springboot.blogapis.model.dto.PostDto;
+import com.springboot.blogapis.model.dto.response.PostResponse;
 import com.springboot.blogapis.model.entites.CategorySchema;
 import com.springboot.blogapis.model.entites.PostSchema;
 import com.springboot.blogapis.model.entites.UserSchema;
@@ -12,6 +13,10 @@ import com.springboot.blogapis.repositories.UserRepo;
 import com.springboot.blogapis.service.PostService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -59,6 +64,7 @@ public class PostServiceImp implements PostService {
         PostSchema post = this.postRepo.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "postId", postId));
         post.setTitle(postDto.getTitle());
         post.setContent(postDto.getContent());
+        post.setImageName(postDto.getImageName());
         PostSchema updatePost = this.postRepo.save(post);
 
         return this.modelMapper.map(updatePost, PostDto.class);
@@ -74,9 +80,32 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public List<PostDto> getAllPost() {
+    public PostResponse getAllPost(Integer pageNumber, Integer pageSize, String sortBy, String sortDirection) {
+        Sort sort = null;
+        if (sortDirection.equalsIgnoreCase("asc")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            sort = Sort.by(sortBy).descending();
+        }
 
-        return this.postRepo.findAll().stream().map((post) -> this.modelMapper.map(post, PostDto.class)).toList();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        Page<PostSchema> pagePost = this.postRepo.findAll(pageable);
+
+        List<PostSchema> postList = pagePost.getContent();
+
+        List<PostDto> postDtoList = postList.stream().map((post) -> this.modelMapper.map(post, PostDto.class)).toList();
+
+        PostResponse postResponse = new PostResponse();
+        postResponse.setContent(postDtoList);
+        postResponse.setPageNumber(pagePost.getNumber());
+        postResponse.setPageSize(pagePost.getSize());
+        postResponse.setTotalElements(pagePost.getTotalElements());
+
+        postResponse.setTotalPages(pagePost.getTotalPages());
+        postResponse.setLastPage(pagePost.isLast());
+
+        return postResponse;
     }
 
     @Override
@@ -103,7 +132,18 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-    public List<PostDto> searchPost(String keyword) {
-        return null;
+    public List<PostDto> searchPostByTitle(String keyword) {
+
+        List<PostSchema>postSchemaList = this.postRepo.findByTitleContaining(keyword);
+        List<PostDto>postDtoList = postSchemaList.stream().map((post) -> this.modelMapper.map(post,PostDto.class)).collect(Collectors.toList());
+        return postDtoList;
+    }
+
+    @Override
+    public List<PostDto> searchPostByTitleQuery(String keyword) {
+
+        List<PostSchema>postSchemaList = this.postRepo.findByTitleQuery("%"+keyword+"%");
+        List<PostDto>postDtoList = postSchemaList.stream().map((post) -> this.modelMapper.map(post,PostDto.class)).collect(Collectors.toList());
+        return postDtoList;
     }
 }
